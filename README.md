@@ -3,10 +3,13 @@
 
 > 对 Chatrooms Club (CrC) 工会 general 频道近期的新消息进行汇总）
 
+_该项目~~折磨人~~的开发过程见 [Wiki](https://github.com/paperee/hcc-eebot/wiki) 更新记录见 [CHANGELOG.md](https://github.com/paperee/hcc-eebot/blob/master/CHANGELOG.md)_
+
 ## hi yooooooo
-- **Author**: Paperee57 _(ee)_
-- **Started**: May 1, 2026 _(劳动节快乐~)_
-- **Description**: Haskell 语言初尝试！_OvO_
+- **Author**：[Paperee57](https://paperee.guru) _(ee)_
+- **Started**：May 1, 2026 _(劳动节快乐~)_
+- **Description**：Haskell 语言初尝试！_OvO_
+- **Thanks**：[Discord](https://discord.com)，[Groq](https://groq.com)，[discord-haskell Docs](https://hackage-content.haskell.org/package/discord-haskell-1.18.0) 
 
 ## environment vars
 > 写入环境变量的方式有很多种 请自行搜索查询…
@@ -34,3 +37,5 @@
 
 ## stack exec hcc-eebot-exe
 > 如果你使用 `stack built` 编译成功 执行该指令让它跑起来！uwu
+
+**_一些输入/输出文件的示例：_**[history.txt](https://github.com/paperee/hcc-eebot/blob/master/uwu/history.txt)，[prompt.txt](https://github.com/paperee/hcc-eebot/blob/master/uwu/prompt.txt)，[report.md](https://github.com/paperee/hcc-eebot/blob/master/uwu/report.md) _(cool)_
