@@ -4,35 +4,38 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 import System.Environment (lookupEnv)
-import System.IO (hSetEncoding, utf8, stdout, stderr)
 
-import Control.Concurrent (threadDelay)
-import Control.Monad (when, void, guard)
+import Control.Concurrent (threadDelay, forkIO)
+import Control.Monad (when, void, guard, forever)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 
-import Data.Monoid ((<>))
+import GHC.Generics (Generic)
 import Data.Yaml (decodeFileEither, FromJSON, ToJSON)
-import Data.Text (Text, isInfixOf, pack, unlines)
+import Data.ByteString (writeFile)
+import Data.Monoid ((<>))
+import Data.Maybe (mapMaybe)
+import Data.Text (Text, isInfixOf, pack, unlines, null)
 import Data.Text.IO (putStrLn)
 import Data.Text.Encoding (encodeUtf8)
-import Data.ByteString (writeFile)
 
-import Prelude hiding (putStrLn, writeFile, unlines)
+import Prelude hiding (putStrLn, writeFile, unlines, print, null)
 
-import GHC.Generics (Generic)
+import Control.Concurrent.MVar (MVar, newMVar, swapMVar)
 
 import Discord
 import Discord.Types
 import Discord.Requests
 
-printLn :: MonadIO a => Text -> a ()
-printLn = liftIO . putStrLn
+print :: MonadIO a => Text -> a ()
+print = liftIO . putStrLn
 
-showT :: Show a => a -> Text
-showT = pack . show
+ps :: Show a => a -> Text
+ps = pack . show
 
 data Config = Config {
   maxHistory :: Int,
+  timeInterval :: Int,
+  historyPath :: String,
   mainGuildId :: GuildId,
   mainChannelId :: ChannelId
 } deriving (Show, Generic, FromJSON, ToJSON)
@@ -46,80 +49,103 @@ loadConfig = do
 
 main :: IO ()
 main = do
-  hSetEncoding stdout utf8
-  hSetEncoding stderr utf8
-
   config <- loadConfig
   case config of
-    Nothing -> printLn "[conf] config.yaml format error"
+    Nothing -> print "[conf] config.yaml format error"
     Just conf -> do
-      printLn "[conf] loaded config.yaml"
+      print "[conf] loaded config.yaml"
 
-      findId <- lookupEnv "HCCBOT_ID"
-      findToken <- lookupEnv "HCCBOT_TOKEN"
+      botId <- lookupEnv "HCCBOT_ID"
+      botToken <- lookupEnv "HCCBOT_TOKEN"
 
-      case (findId, findToken) of
-        (Nothing, _) -> printLn "[env] HCCBOT_ID is not set"
-        (_, Nothing) -> printLn "[env] HCCBOT_TOKEN is not set"
-        (Just botId, Just botToken) -> do
-          let self = pack $ "<@" <> botId <> ">"
+      case (botId, botToken) of
+        (Nothing, _) -> print "[env] HCCBOT_ID is not set"
+        (_, Nothing) -> print "[env] HCCBOT_TOKEN is not set"
+        (Just id_, Just token_) -> do
+          let self = pack $ "<@" <> id_ <> ">"
+          flag <- newMVar False
           result <- runDiscord $ def {
-            discordToken = pack botToken,
-            discordOnEvent = eebot self conf
+            discordToken = pack token_,
+            discordOnEvent = eebot self conf flag
           }
-          printLn result
+          print result
 
-eebot :: Text -> Config -> Event -> DiscordHandler ()
-eebot self conf event = case event of
+eebot :: Text -> Config -> MVar Bool -> Event -> DiscordHandler ()
+eebot self conf flag event = case event of
   Ready {} -> do
-    printLn $ "[hi] HCC eebot !!! uwu"
-    printLn $ "[club] " <> showT (mainGuildId conf)
-    printLn $ "[room] " <> showT (mainChannelId conf)
-    getHistory (mainChannelId conf) (maxHistory conf)
+    let maxHLen = maxHistory conf
+        timeInt = timeInterval conf
+        filePath = historyPath conf
+        mainClub = mainGuildId conf
+        mainRoom = mainChannelId conf
 
-  MessageCreate msg -> when (not $ fromBot msg) $ do
-    let clubId = messageGuildId msg
-        roomId = messageChannelId msg
-        textId = messageId msg
-        text = messageContent msg
-        user = userName $ messageAuthor msg
+    print $ "[hi] HCC eebot !!! uwu"
+    print $ "[club] " <> ps (mainClub)
+    print $ "[room] " <> ps (mainRoom)
 
-    guard (clubId == Just (mainGuildId conf))
+    getHistory mainRoom maxHLen filePath
 
-    when (self `isInfixOf` text) $ do
-      void $ restCall $ CreateReaction (roomId, textId) "fire"
+    void $ liftIO $ forkIO $ forever $ do
+      threadDelay (timeInt * 60000000) -- 60s
+      void $ swapMVar flag True
 
-    when (roomId == mainChannelId conf) $ do
-      printLn $ "[msg] " <> user <> ": " <> text
+  MessageCreate msg -> do
+    let maxHLen = maxHistory conf
+        filePath = historyPath conf
+        mainClub = mainGuildId conf
+        mainRoom = mainChannelId conf
 
-fromBot :: Message -> Bool
-fromBot = userIsBot . messageAuthor
+    signal <- liftIO $ swapMVar flag False
+    when signal $ getHistory mainRoom maxHLen filePath
 
-getHistory :: ChannelId -> Int -> DiscordHandler ()
-getHistory roomId limit = do
-  printLn $ "[msgs] start getting " <> showT limit <> " msgs"
+    when (not $ userIsBot (messageAuthor msg)) $ do
+      let user = userName $ messageAuthor msg
+          text = messageContent msg
+          textId = messageId msg
+          clubId = messageGuildId msg
+          roomId = messageChannelId msg
+
+      guard (clubId == Just (mainClub))
+
+      when (self `isInfixOf` text) $ do -- test
+        void $ restCall $ CreateReaction (roomId, textId) "fire"
+
+      when (roomId == mainRoom && not (null text)) $ do
+        print $ "[msg] " <> user <> ": " <> text
+
+  _ -> return ()
+
+formatMsg :: Message -> Maybe Text
+formatMsg msg =
+  let user = userName $ messageAuthor msg
+      text = messageContent msg
+
+  in guard (not $ null text) >> return (user <> ": " <> text)
+
+getHistory :: ChannelId -> Int -> String -> DiscordHandler ()
+getHistory roomId limit hPath = do
+  print $ "[msgs] start getting " <> ps limit <> " msgs"
   msgs <- nextBatch roomId limit []
 
-  let writeTo = "history.txt"
-      content = unlines $ map formatMsg msgs
+  let formatted = mapMaybe formatMsg msgs
+      content = unlines $ formatted
 
-  liftIO $ writeFile writeTo (encodeUtf8 content)
-  printLn $ "[msgs] written " <> showT (length msgs) <> " msgs"
+  liftIO $ writeFile hPath (encodeUtf8 content)
+  print $ "[msgs] written " <> ps (length formatted) <> " msgs"
 
 nextBatch :: ChannelId -> Int -> [Message] -> DiscordHandler [Message]
-nextBatch _ remaining acc | remaining <= 0 = return (reverse acc)
-nextBatch roomId remaining acc = do
-  let size = min 100 remaining
+nextBatch _ rest acc | rest <= 0 = return (reverse acc)
+nextBatch roomId rest acc = do
+  let size = min 100 rest
       point = case acc of
         [] -> LatestMessages
         ms -> BeforeMessage (messageId $ last ms)
 
   result <- restCall $ GetChannelMessages roomId (size, point)
 
+  liftIO $ threadDelay 500000 -- 0.5s
+
   case result of
     Left _ -> return (reverse acc)
-    Right new | null new -> return (reverse acc)
-    Right new -> nextBatch roomId (remaining - length new) (acc <> new)
-
-formatMsg :: Message -> Text
-formatMsg msg = (userName $ messageAuthor msg) <> ": " <> messageContent msg
+    Right new | length new <= 0 -> return (reverse acc)
+    Right new -> nextBatch roomId (rest - length new) (acc <> new)

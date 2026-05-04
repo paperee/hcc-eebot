@@ -1,3 +1,5 @@
-maxHistory: 500
+maxHistory: 200
+timeInterval: 60 # min
+historyPath: "history.txt"
 mainGuildId: "1059405085391728680"
 mainChannelId: "1143954723758669835"
