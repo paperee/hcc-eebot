@@ -29,6 +29,7 @@ dependencies:
   - yaml >= 0.11
   - req >= 3.13
   - aeson >= 2.2.4
+  - vector >= 0.12
 
 ghc-options:
   - -O0

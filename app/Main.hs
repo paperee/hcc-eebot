@@ -11,14 +11,14 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 
 import GHC.Generics (Generic)
 import Data.Yaml (decodeFileEither, FromJSON, ToJSON)
-import Data.ByteString (writeFile)
+import Data.ByteString (readFile, writeFile)
 import Data.Monoid ((<>))
 import Data.Maybe (mapMaybe)
-import Data.Text (Text, isInfixOf, pack, unlines, null)
+import Data.Text (Text, isInfixOf, pack, unpack, unlines, null)
 import Data.Text.IO (putStrLn)
-import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 
-import Prelude hiding (putStrLn, writeFile, unlines, print, null)
+import Prelude hiding (putStrLn, readFile, writeFile, unlines, print, null)
 
 import Control.Concurrent.MVar (MVar, newMVar, swapMVar)
 
@@ -26,7 +26,7 @@ import Discord
 import Discord.Types
 import Discord.Requests
 
-import Groq -- uwu
+import Groq (callGroq) -- uwu
 
 print :: MonadIO a => Text -> a ()
 print = liftIO . putStrLn
@@ -54,8 +54,7 @@ loadConfig = do
 
 main :: IO ()
 main = do
-  config <- loadConfig
-  case config of
+  loadConfig >>= \config -> case config of
     Nothing -> print "[conf] config.yaml format error"
     Just conf -> do
       print "[conf] loaded config.yaml"
@@ -76,40 +75,37 @@ main = do
 
         (Just id_, Just token_, Just key_) -> do
           flag <- newMVar False
-          result <- runDiscord $ def {
+
+          void $ runDiscord $ def {
             discordToken = pack token_,
             discordOnEvent = eebot id_ key_ conf flag
           }
-          print result
 
 eebot :: String -> String -> Config -> MVar Bool -> Event -> DiscordHandler ()
 eebot id_ key_ conf flag event = case event of
   Ready {} -> do
-    let maxHLen = maxHistory conf
-        timeInt = timeInterval conf
-        filePath = historyPath conf
-        mainClub = mainGuildId conf
+    let mainClub = mainGuildId conf
         mainRoom = mainChannelId conf
 
-    print $ "[hi] HCC eebot !!! uwu"
+    print $ "[join] HCC eebot !!! uwu"
     print $ "[club] " <> ps (mainClub)
     print $ "[room] " <> ps (mainRoom)
 
-    getHistory mainRoom maxHLen filePath
+    sumHistory mainRoom key_ conf
+
+    let timeInt = timeInterval conf
 
     void $ liftIO $ forkIO $ forever $ do
       threadDelay (timeInt * 60000000) -- 60s
       void $ swapMVar flag True
 
   MessageCreate msg -> do
-    let maxHLen = maxHistory conf
-        filePath = historyPath conf
-        mainClub = mainGuildId conf
+    let mainClub = mainGuildId conf
         mainRoom = mainChannelId conf
         mention = pack $ "<@" <> id_ <> ">"
 
     signal <- liftIO $ swapMVar flag False
-    when signal $ getHistory mainRoom maxHLen filePath
+    when signal $ sumHistory mainRoom key_ conf
 
     when (not $ userIsBot (messageAuthor msg)) $ do
       let user = userName $ messageAuthor msg
@@ -120,31 +116,38 @@ eebot id_ key_ conf flag event = case event of
 
       guard (clubId == Just (mainClub))
 
-      when (mention `isInfixOf` text) $ do -- test
+      when (mention `isInfixOf` text) $ do -- burn
         void $ restCall $ CreateReaction (roomId, textId) "fire"
 
       when (roomId == mainRoom && not (null text)) $ do
-        print $ "[msg] " <> user <> ": " <> text
+        print $ "[log] " <> user <> ": " <> text -- peek
 
   _ -> return ()
 
-formatMsg :: Message -> Maybe Text
-formatMsg msg =
-  let user = userName $ messageAuthor msg
-      text = messageContent msg
+sumHistory :: ChannelId -> String -> Config -> DiscordHandler ()
+sumHistory mainRoom key_ conf = do
+  let maxHLen = maxHistory conf
+      histPath = historyPath conf
+      reptPath = reportPath conf
+      pmptPath = promptPath conf
 
-  in guard (not $ null text) >> return (user <> ": " <> text)
+  let mod_ = groqModel conf
 
-getHistory :: ChannelId -> Int -> String -> DiscordHandler ()
-getHistory roomId limit hPath = do
-  print $ "[msgs] start getting " <> ps limit <> " msgs"
-  msgs <- nextBatch roomId limit []
+  getHistory mainRoom maxHLen histPath >>=
+    getReport reptPath pmptPath key_ mod_
+
+getHistory :: ChannelId -> Int -> String -> DiscordHandler Text
+getHistory roomId hLen hPath = do
+  print $ "[logs] start getting " <> ps hLen <> " msgs"
+  msgs <- nextBatch roomId hLen []
 
   let formatted = mapMaybe formatMsg msgs
       content = unlines $ formatted
 
   liftIO $ writeFile hPath (encodeUtf8 content)
-  print $ "[msgs] written " <> ps (length formatted) <> " msgs"
+  print $ "[logs] written " <> ps (length formatted) <> " msgs to " <> pack hPath
+
+  return content
 
 nextBatch :: ChannelId -> Int -> [Message] -> DiscordHandler [Message]
 nextBatch _ rest acc | rest <= 0 = return (reverse acc)
@@ -162,3 +165,22 @@ nextBatch roomId rest acc = do
     Left _ -> return (reverse acc)
     Right new | length new <= 0 -> return (reverse acc)
     Right new -> nextBatch roomId (rest - length new) (acc <> new)
+
+formatMsg :: Message -> Maybe Text
+formatMsg msg =
+  let user = userName $ messageAuthor msg
+      text = messageContent msg
+
+  in guard (not $ null text) >> return (user <> ": " <> text)
+
+getReport :: String -> String -> String -> String -> Text -> DiscordHandler ()
+getReport rPath pPath key_ mod_ hist = do
+  print $ "[logs] start requesting " <> pack mod_
+  pmpt <- liftIO $ readFile pPath
+  print $ "[logs] loaded " <> pack pPath
+
+  let text = decodeUtf8 pmpt <> "\n\n" <> hist
+
+  content <- liftIO $ callGroq key_ mod_ (unpack text)
+  liftIO $ writeFile rPath (encodeUtf8 content)
+  print $ "[logs] written to " <> pack rPath

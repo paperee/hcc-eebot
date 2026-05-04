@@ -1,0 +1,194 @@
+whrrrami: 为什么adguard会给他每一个软件做一个中世纪风格图片
+0x24a: 这种写代码最狠了
+whrrrami: Nyarch
+0x24a: btw 不要转发（）（）
+murongpig: 自助申请
+murongpig: 半天通过审核
+murongpig: 永久有效离校不收回不转校友邮箱
+alltobebetter: 我还没申请过我们学校的域名邮箱
+alltobebetter: 主要是没啥用
+alltobebetter: 不行
+alltobebetter: 还是去申一个吧
+murongpig: 默认两个别名 一个学号一个自定义 后期改别名线下申请
+murongpig: 爽爆了 可惜被jb拉黑名单了（但是可以学生包曲线救国
+alltobebetter: woc真好
+alltobebetter: XD
+murongpig: az也可以直接申{这个不走学生包直接用邮箱都行
+paperee: 是1.20.1吗 ~~等ee弄完一些东西 晚点上去玩玩~~
+melonfin: 1.20.4
+melonfin: guruguriguru！
+paperee: gurgrugrugruguru
+whrrrami: 没mod，上geyser（bushi
+paperee: 我现在也是三个 但是最常用的还是~~QQ邮箱~~
+我以前不懂事 甚至用它注册了不少机场… 😭
+whrrrami: 首先需要安装viaproxy把鱼的服务器映射成最新版本
+paperee: ~~好吧 不过目前为止无事发生~~
+whrrrami: 然后安装geyser alone来转换基岩版
+whrrrami: 然后基岩版26.14加入鱼服务器
+whrrrami: 天才！
+whrrrami: <@1393552049412509726> 这可行吗
+whrrrami: bushi
+paperee: 我上学期无所事事的时候也这么干）
+还用过一段时间的流利说（也是一个学习/跟读英语的软件 
+只不过 这学期 我在电脑上想做的事更多一些（
+paperee: ~~法语在我身边真是很小众了 初高中来没见过有谁学的…~~
+hackc1aw: 我现在打开多邻国的主要目的是跟*数据删除*刷连胜
+paperee: 草
+paperee: ~~可以可以~~
+melonfin: 66666666
+melonfin: 思
+_nenc: ~~羡慕~~
+0x24a: 我还有 Zed, btw 和 Rust, btw
+whrrrami: 🙁
+xuan2wei1: 這是哪個客戶端看起來好玩
+whrrrami: https://hcjc.netlify.app
+whrrrami: 之前打算写成正经教程的
+whrrrami: 但是写一半产能不够了
+paperee: https://github.com/paperee/hcc-eebot/wiki/%E7%BC%96%E8%AF%91%E6%97%B6%E7%9A%84%E6%8A%A5%E9%94%99%E6%88%AA%E6%96%AD%E4%B8%8E%E7%BB%88%E7%AB%AF%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98
+paperee: 感觉写得还是不够严谨 希望被指出 🤔
+alltobebetter: ask claude
+alltobebetter: XD
+whrrrami: 有没有人来试试分析这个诈骗网站
+whrrrami: 技术很高明
+whrrrami: 首先ban大陆外ai访问
+whrrrami: 然后使用自定义加密来阻止webcreak.netlify.app分析
+whrrrami: obf-io.obfuscator.io也解不出来
+whrrrami: 解出的内容几乎不可读
+whrrrami: 我的修为只能读出使用使用了AES-GCM，然后有一个伪装的完整性检查
+whrrrami: url https://j54316m.bili33.cn.m6t8c.com/p/HESdyK
+whrrrami: 而且加密解密不依赖库
+whrrrami: 无法hook解密逻辑
+whrrrami: 整体也是闭包
+whrrrami: 反调试逻辑也很精明
+xuan2wei1: 為什麼我點了done沒有反應啊
+xuan2wei1: 就是那個讓我發個消息
+whrrrami: 因为你没发出去
+xuan2wei1: 為什麼會有Jankie_awa
+xuan2wei1: 這個好像不是真的lounge
+whrrrami: 是的
+whrrrami: 确实不是真的
+whrrrami: 直接hook payload
+whrrrami: 拿到html了
+xuan2wei1: 我必須一字不差的發大家好？
+whrrrami: s q
+whrrrami: 是
+xuan2wei1: 這個是純前端還是實際上另外開了一個hc服務器
+whrrrami: 纯前端
+xuan2wei1: 所有人都會見到23嗎
+xuan2wei1: 我要被嚇死了
+whrrrami: 成功提取
+whrrrami: 是
+whrrrami: 还有第三层混淆
+alltobebetter: AES-128-OFB是吗
+alltobebetter: WAF是宝塔的
+whrrrami: 是的
+whrrrami: 看见有wafcookie
+alltobebetter: 不是真mac
+whrrrami: 名称是btwaf_xxx
+whrrrami: 啥意思
+alltobebetter: 不不不我是说OFB
+alltobebetter: if(finish())就装样子
+whrrrami: 哈？
+alltobebetter: 改密文它也能过
+whrrrami: 那解出来的数据一样吗
+alltobebetter: 你说这个？
+whrrrami: 这是解出来的结果啊
+alltobebetter: 是一样的吧
+alltobebetter: 笑垃了
+alltobebetter: 我还得关梯子去跑
+whrrrami: 那这加密有啥用
+melonfin: 思
+melonfin: 这种阻止调试和阻止f12一类的东西直接brupsuiet就能过吧
+whrrrami: nah，并非
+whrrrami: 我试过提前开+禁断点
+melonfin: 好像有个js被加密了一部分，我记得之前有一个特别nb的反混淆
+alltobebetter: 让机器人搞不到吧
+alltobebetter: 反正又不是拦截真去分析的
+alltobebetter: 普通爬虫抓不到不就行了
+melonfin: 那个brupsuite是直接拦包的，，在浏览器处理之前就拦截下来了
+melonfin: 比浏览器禁用啥东西要厉害一点
+melonfin: 我喜欢脚手架
+whrrrami: 解完了
+whrrrami: 个人认为：难度适中，没以前那么简单
+melonfin: cool
+paperee: cool
+alltobebetter: lool
+paperee: loop
+alltobebetter: lock
+melonfin: look
+alltobebetter: book
+melonfin: cook
+paperee: hook
+melonfin: rock
+whrrrami: oooo
+melonfin: cccc
+alltobebetter: kkt
+melonfin: aaaaaaaaaa
+melonfin: 好消息：又发现一个野生地狱门
+melonfin: 坏消息：打火石炸了，而且附近没有沙滩
+paperee: moon
+melonfin: 好消息：大晚上划船意外碰到沉船
+melonfin: 坏消息：tmd就一个箱子而且里面就一点吃的
+melonfin: 展示景色
+hackc1aw: http://jiangmuran.com:520
+hackc1aw: 大型RAG（
+hackc1aw: 欢迎来玩玩
+whrrrami: RAG是啥
+whrrrami: 说到RAG我想到的是附魔台RNG破解
+alltobebetter: 我测真的假的你不知道rag
+alltobebetter: 虽然叫检索增强生成但是我更容易叫成向量数据库
+alltobebetter: ~~虽然不对~~
+alltobebetter: neo4j用多了
+whrrrami: ovo
+melonfin: 地狱门仙人这一块
+melonfin: 又发现一个地狱门
+melonfin: 一个富裕的村庄
+melonfin: 山水宝地不说
+melonfin: tmd铁匠铺的箱子里居然有两个钻石
+melonfin: 然后还有一个房子的箱子里两个绿宝石
+melonfin: 然后村庄附近一个地狱门
+melonfin: 村庄旁边的海里还有海晶灯
+melonfin: 附近还有n个矿洞
+melonfin: 我去旁边还有个峡谷
+whrrrami: 鱼为什么不说话
+melonfin: 刚刚在afk
+remelens: windows壁纸即视感
+xuan2wei1: 嗚嗚嗚嗚嗚嗚嗚
+whrrrami: 呀，这不是zai吗，几天不见上agent Team了
+hackc1aw: 密码是某个众所周知的东西
+whrrrami: 坏了我真不知道
+whrrrami: 有啥众所周知的东西吗
+whrrrami: 让我想想
+whrrrami: 思ing
+hackc1aw: 其实是人名
+whrrrami: \:O 我可能知道是什么，但是我在历史记录中搜不到
+hackc1aw: 其实我的 GitHub 指的是我自己的 GitHub 那个仓库里面可能有
+whrrrami: https://ysm.rip
+whrrrami: 看起来像ai吗
+whrrrami: 思考ing
+whrrrami: ok过了
+whrrrami: 你这df咋默认人类可读啊（）
+paperee: 😭  我好崩溃啊 在Python一行`result.choices[0].message.content`就解决的事 在Haskell里tm要这么写
+paperee: 我终于知道Lambda那个形状是怎么来的了 像啊… 😭
+hackc1aw: <@1059424324118917120> 来玩
+whrrrami: jmr这个项目给了我一个灵感
+whrrrami: 因为我把他的RAG看成RPG了
+paperee: OvO 我晚点 马上就好了……
+whrrrami: 啊，等一下
+whrrrami: 这就是arg啊
+whrrrami: 和mcarg的arg是一个东西，换成大写我就没看出来
+whrrrami: 草了
+_nenc: 什么
+_nenc: RAG和ARG
+_nenc: 等等，jmr这个是ARG？？？
+_nenc: 我还以为是检索增强生成
+_nenc: 是啊，苏淋说的是检索增强生成
+whrrrami: 对啊，我还想说这个东西还要我去找名称，为什么说是RAG
+_nenc: 我没想到，jmr居然把ARG叫做RAG
+whrrrami: 很明显是解谜类型的
+whrrrami: 难受，这东西对真终端支持不好
+whrrrami: 因为没加 \r
+whrrrami: 不是putty问题
+whrrrami: xterm.js这个浏览器终端库也是这种行为
+whrrrami: 而且\n也执只是下一行，\r才是回到行首
+whrrrami: 我在想这和RAG有啥关系，然后su解释，然后我一脸懵逼这个网站和RAG有啥关系，推测是ARG的笔误
