@@ -27,6 +27,8 @@ dependencies:
   - bytestring >= 0.10
   - time >= 1.12
   - yaml >= 0.11
+  - req >= 3.13
+  - aeson >= 2.2.4
 
 ghc-options:
   - -O0

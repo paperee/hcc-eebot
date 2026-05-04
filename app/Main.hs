@@ -26,6 +26,8 @@ import Discord
 import Discord.Types
 import Discord.Requests
 
+import Groq -- uwu
+
 print :: MonadIO a => Text -> a ()
 print = liftIO . putStrLn
 
@@ -33,9 +35,12 @@ ps :: Show a => a -> Text
 ps = pack . show
 
 data Config = Config {
-  maxHistory :: Int,
   timeInterval :: Int,
+  maxHistory :: Int,
   historyPath :: String,
+  reportPath :: String,
+  promptPath :: String,
+  groqModel :: String,
   mainGuildId :: GuildId,
   mainChannelId :: ChannelId
 } deriving (Show, Generic, FromJSON, ToJSON)
@@ -57,21 +62,28 @@ main = do
 
       botId <- lookupEnv "HCCBOT_ID"
       botToken <- lookupEnv "HCCBOT_TOKEN"
+      apiKey <- lookupEnv "GROQ_API_KEY"
 
-      case (botId, botToken) of
-        (Nothing, _) -> print "[env] HCCBOT_ID is not set"
-        (_, Nothing) -> print "[env] HCCBOT_TOKEN is not set"
-        (Just id_, Just token_) -> do
-          let self = pack $ "<@" <> id_ <> ">"
+      case (botId, botToken, apiKey) of
+        (Nothing, _, _) ->
+          print "[env] HCCBOT_ID is not set"
+
+        (_, Nothing, _) ->
+          print "[env] HCCBOT_TOKEN is not set"
+
+        (_, _, Nothing) ->
+          print "[env] GROQ_API_KEY is not set"
+
+        (Just id_, Just token_, Just key_) -> do
           flag <- newMVar False
           result <- runDiscord $ def {
             discordToken = pack token_,
-            discordOnEvent = eebot self conf flag
+            discordOnEvent = eebot id_ key_ conf flag
           }
           print result
 
-eebot :: Text -> Config -> MVar Bool -> Event -> DiscordHandler ()
-eebot self conf flag event = case event of
+eebot :: String -> String -> Config -> MVar Bool -> Event -> DiscordHandler ()
+eebot id_ key_ conf flag event = case event of
   Ready {} -> do
     let maxHLen = maxHistory conf
         timeInt = timeInterval conf
@@ -94,6 +106,7 @@ eebot self conf flag event = case event of
         filePath = historyPath conf
         mainClub = mainGuildId conf
         mainRoom = mainChannelId conf
+        mention = pack $ "<@" <> id_ <> ">"
 
     signal <- liftIO $ swapMVar flag False
     when signal $ getHistory mainRoom maxHLen filePath
@@ -107,7 +120,7 @@ eebot self conf flag event = case event of
 
       guard (clubId == Just (mainClub))
 
-      when (self `isInfixOf` text) $ do -- test
+      when (mention `isInfixOf` text) $ do -- test
         void $ restCall $ CreateReaction (roomId, textId) "fire"
 
       when (roomId == mainRoom && not (null text)) $ do
