@@ -1,11 +1,12 @@
-timeInterval: 60 # min
-maxHistory: 200 # length
+timeInterval: 60
+maxHistory: 200
 
 historyPath: "./uwu/history.txt"
 reportPath: "./uwu/report.md"
 promptPath: "./uwu/prompt.txt"
+headerPath: "./uwu/header.md"
 
 groqModel: "openai/gpt-oss-120b" # free
 
-mainGuildId: "1059405085391728680"
-mainChannelId: "1143954723758669835"
+mainClubId: "1059405085391728680"
+mainRoomId: "1143954723758669835"
