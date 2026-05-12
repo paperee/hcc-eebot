@@ -8,6 +8,8 @@ _一个对某工会某频道近期的新消息进行 AI 汇总的项目_
 
 生成的报告将自动发表至 [纸片君ee的博客: 聊天室时报！](https://blog.paperee.guru/essays/聊天室时报！)
 
+> ……由于硬盘堆满而没有空间安装庞大的 GHC 而暂时搁置 QAQ
+
 ## hi yooooooo
 
 - **Author**：[Paperee57](https://paperee.guru) _(ee)_
@@ -33,13 +35,15 @@ _一个对某工会某频道近期的新消息进行 AI 汇总的项目_
 1. _修改 `mainGuildId` 字段为 bot 加入的工会 id_
 2. _修改 `mainChannelId` 字段为该工会其中某频道的 id_
 3. _其他字段也可以修改 (但是没必要) 以下一一列举_
-   - `timeInterval`: 每隔多少分钟请求历史记录并生成报告 (_60_)
-   - `maxHistory`: 每次请求多少条历史记录 (_200_)
-   - `historyPath`: 历史记录文件存放的路径 (_./uwu/history.txt_)
-   - `reportPath`: 报告文件存放的路径 (_./uwu/report.md_)
-   - `promptPath`: 提示词从该路径读取 (_./uwu/prompt.txt_)
-   - `headerPath`: 报告头部从该路径读取 (_./uwu/header.md_)
-   - `groqModel`：Groq 平台的大模型 (_openai/gpt-oss-120b_)
+
+- `timeInterval`: 每隔多少分钟请求历史记录并生成报告 (_60_)
+- `maxHistory`: 每次请求多少条历史记录 (_100_)
+- `msgLength`: 限制历史记录中单条消息的长度 (_50_)
+- `historyPath`: 历史记录文件存放的路径 (_./uwu/history.txt_)
+- `reportPath`: 报告文件存放的路径 (_./uwu/report.md_)
+- `promptPath`: 提示词从该路径读取 (_./uwu/prompt.txt_)
+- `headerPath`: 报告头部从该路径读取 (_./uwu/header.md_)
+- `groqModel`：Groq 平台的大模型 (_openai/gpt-oss-120b_)
 
 ## stack built --fast
 

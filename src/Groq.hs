@@ -5,12 +5,12 @@ module Groq (callGroq) where
 
 import Network.HTTP.Req
 
+import Control.Applicative ((<|>))
 import Data.Aeson
-import Data.Aeson.Types (parseEither)
+import Data.Aeson.Types (Parser, parseEither)
 import Data.ByteString.Char8 (pack)
 import Data.Text (Text)
-import Data.Vector ((!), null)
-import Prelude hiding (null)
+import qualified Data.Vector as V
 
 callGroq :: String -> String -> String -> IO Text
 callGroq apiKey apiMod text = runReq defaultHttpConfig $ do
@@ -23,14 +23,19 @@ callGroq apiKey apiMod text = runReq defaultHttpConfig $ do
     $ header "Authorization" ("Bearer " <> pack apiKey)
 
   let val = responseBody res :: Value
-  case parseEither parseJSON val of
-    Right (Object o) -> case parseEither (.: "choices") o of -- wtf
-      Right (Array arr) | not (null arr) -> case arr ! 0 of -- lambda
-        Object c -> case parseEither (.: "message") c of -- wssb nsfw
-          Right (Object m) -> case parseEither (.: "content") m of
-            Right (content :: Text) -> return content -- =v=
-            _ -> return ""
-          _ -> return ""
-        _ -> return ""
-      _ -> return ""
+  case parseEither parseGroqContent val of
+    Right content -> return content
     _ -> return ""
+
+parseGroqContent :: Value -> Parser Text
+parseGroqContent = withObject "Groq response" $ \o -> do
+  choices <- o .: "choices"
+  choice <- case choices of
+    Array arr | not (V.null arr) -> pure (arr V.! 0)
+    _ -> fail "missing choices"
+  parseChoiceContent choice
+
+parseChoiceContent :: Value -> Parser Text
+parseChoiceContent = withObject "choice" $ \c ->
+  (c .: "message" >>= (.: "content")) <|>
+  (c .: "delta" >>= (.: "content"))

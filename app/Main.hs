@@ -14,16 +14,17 @@ import Data.Yaml (decodeFileEither, FromJSON, ToJSON)
 import Data.ByteString (readFile, writeFile)
 import Data.Monoid ((<>))
 import Data.Maybe (mapMaybe)
-import Data.Text (Text, isInfixOf, pack, unpack, unlines, null, replace)
+import Data.Text (Text, isInfixOf, pack, unpack, unlines, null, replace, take)
 import Data.Text.IO (putStrLn)
-import Data.Text.Encoding (encodeUtf8, decodeUtf8)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8With)
+import Data.Text.Encoding.Error (lenientDecode)
 import Data.Foldable (traverse_)
 
 import Data.Time (getCurrentTime)
 import Data.Time.LocalTime (utcToLocalTime, hoursToTimeZone)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 
-import Prelude hiding (putStrLn, readFile, writeFile, unlines, print, null)
+import Prelude hiding (putStrLn, readFile, writeFile, unlines, print, null, take)
 
 import Control.Concurrent.MVar (MVar, newMVar, swapMVar)
 
@@ -39,9 +40,13 @@ print = liftIO . putStrLn
 ps :: Show a => a -> Text
 ps = pack . show
 
+separator :: Text
+separator = "\n" <> pack (replicate 30 '-')
+
 data Config = Config {
   timeInterval :: Int,
   maxHistory :: Int,
+  msgLength :: Int,
   historyPath :: String,
   reportPath :: String,
   promptPath :: String,
@@ -83,7 +88,7 @@ eebot id_ key_ conf@Config{..} flag event = case event of
   Ready {} -> do
     print $ "[join] HCC eebot !!! uwu"
     print $ "[club] " <> ps (mainClubId)
-    print $ "[room] " <> ps (mainRoomId)
+    print $ "[room] " <> ps (mainRoomId) <> separator
 
     sumHistory key_ conf
 
@@ -104,7 +109,7 @@ eebot id_ key_ conf@Config{..} flag event = case event of
         void $ restCall $ CreateReaction (messageChannelId, messageId) "fire"
 
       when (messageChannelId == mainRoomId && not (null messageContent)) $ do
-        traverse_ (print . ("[log] " <>)) (formatMsg msg) -- peek
+        traverse_ (print . ("[log] " <>)) (formatMsg Nothing msg) -- peek
 
   _ -> return ()
 
@@ -116,7 +121,7 @@ getHistory Config{..} = do
   print $ "[logs] start getting " <> ps maxHistory <> " msgs"
 
   msgs <- nextBatch mainRoomId maxHistory []
-  let formatted = mapMaybe formatMsg msgs
+  let formatted = mapMaybe (formatMsg (Just msgLength)) msgs
       content = unlines $ formatted
 
   saveFile historyPath content
@@ -140,10 +145,14 @@ nextBatch mainRoomId rest acc = do
     Right new | length new <= 0 -> return (reverse acc)
     Right new -> nextBatch mainRoomId (rest - length new) (acc <> new)
 
-formatMsg :: Message -> Maybe Text
-formatMsg Message{..} = do
+formatMsg :: Maybe Int -> Message -> Maybe Text
+formatMsg maxLength Message{..} = do
   guard (not $ null messageContent)
-  return (userName messageAuthor <> ": " <> messageContent)
+  let content = case maxLength of
+        Just len | length (unpack messageContent) > len ->
+          take len messageContent <> "…"
+        _ -> messageContent
+  return (userName messageAuthor <> ": " <> content)
 
 getReport :: String -> Config -> Text -> DiscordHandler ()
 getReport key_ conf@Config{..} hist = do
@@ -177,9 +186,9 @@ getNowTime = do
 loadFile :: String -> DiscordHandler Text
 loadFile path = do
   print $ "[logs] loaded " <> pack path
-  liftIO $ decodeUtf8 <$> readFile path
+  liftIO $ decodeUtf8With lenientDecode <$> readFile path
 
 saveFile :: String -> Text -> DiscordHandler ()
 saveFile path text = do
   liftIO $ writeFile path (encodeUtf8 text)
-  print $ "[logs] written to " <> pack path
+  print $ "[logs] written to " <> pack path <> separator

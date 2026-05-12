@@ -1,5 +1,6 @@
 timeInterval: 60
-maxHistory: 200
+maxHistory: 100
+msgLength: 50
 
 historyPath: "./uwu/history.txt"
 reportPath: "./uwu/report.md"
