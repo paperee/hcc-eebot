@@ -19,6 +19,32 @@ _一个对某工会某频道近期的新消息进行 AI 汇总的项目_
 
 该项目~~折磨人~~的开发过程见 [Wiki](https://github.com/paperee/hcc-eebot/wiki) 更新记录见 [CHANGELOG.md](https://github.com/paperee/hcc-eebot/blob/master/CHANGELOG.md)
 
+## project structure
+
+> 感觉目录文件树还挺清晰 这里也放一个
+
+```
+hcc-eebot
+├─ app
+│  └─ Main.hs
+├─ CHANGELOG.md
+├─ config.yaml
+├─ hcc-eebot.cabal
+├─ LICENSE
+├─ package.yaml
+├─ README.md
+├─ Setup.hs
+├─ src
+│  └─ Groq.hs
+├─ stack.yaml
+├─ stack.yaml.lock
+└─ uwu
+   ├─ header.md
+   ├─ history.txt
+   ├─ prompt.txt
+   └─ report.md
+```
+
 ## environment vars
 
 > 请自行搜索/查询写入环境变量的方式 有很多种
